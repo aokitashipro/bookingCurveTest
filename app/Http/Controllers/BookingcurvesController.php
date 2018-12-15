@@ -14,6 +14,7 @@ use SplFileObject;
 
 class BookingcurvesController extends Controller
 {
+
     //
     // public function index(Request $request)
     // {
@@ -91,6 +92,62 @@ class BookingcurvesController extends Controller
     }
 
 
+    }
+
+    public function export(Request $request)
+    {
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=bookingcurve.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+    
+        $callback = function()
+        {
+            
+            $createCsvFile = fopen('php://output', 'w');
+            
+            $columns = [
+                'ota',
+                'reserved_date',
+                'checkin_date',
+                'total_price',
+            ];
+
+            mb_convert_variables('SJIS-win', 'UTF-8', $columns);
+    
+            fputcsv($createCsvFile, $columns);
+
+            $bookingCurveResults = TestBooking::all();
+
+            // $bookingCurve = DB::table('testbooking');
+
+            // $bookingCurveResults = $bookingCurve
+            //     ->groupby('reserved_date')
+            //     ->groupby('total_price')
+            //     ->get();
+
+            foreach ($bookingCurveResults as $row) { 
+                $csv = [
+                    $row->ota,
+                    $row->reserved_date,
+                    $row->checkin_date,
+                    $row->total_price,
+                ];
+
+                mb_convert_variables('SJIS-win', 'UTF-8', $csv);
+
+                fputcsv($createCsvFile, $csv);
+            }
+            fclose($createCsvFile);
+        };
+
+        //var_dump($list);
+        
+        return response()->stream($callback, 200, $headers);
+        
     }
 
 }

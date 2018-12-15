@@ -14,3 +14,5 @@
 Route::get('/', 'BookingcurvesController@index')->name('bookingcurve_index');
 
 Route::post('/import', 'BookingcurvesController@import')->name('bookingcurve_import');
+
+Route::post('/export', 'BookingcurvesController@export')->name('bookingcurve_export');

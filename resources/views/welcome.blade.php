@@ -23,7 +23,13 @@
                         <button type="submit" class="btn btn-default btn-success">保存</button>
                     </div>
                 </form>
-    
+
+                <form role="form" method="post" action="export" enctype="multipart/form-data">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-default btn-success" name="csv_export">エクスポート</button>
+                    
+                </form>
+
             </div>
         </div>
     </body>
