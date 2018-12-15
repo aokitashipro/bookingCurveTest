@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 
 use App\Bookingcurve;
+use App\Testbooking;
 
 //useしないと 自動的にnamespaceのパスが付与されるのでuse
 use SplFileObject;
@@ -65,15 +66,25 @@ class BookingcurvesController extends Controller
         // 1行目のヘッダーは取り込まない
         if ($row_count > 1)
         {
-            $id = mb_convert_encoding($row[0], 'UTF-8', 'SJIS');
-            $name = mb_convert_encoding($row[1], 'UTF-8', 'SJIS');
-            $age = mb_convert_encoding($row[2], 'UTF-8', 'SJIS');
 
-            var_dump($id);
-            var_dump($name);
-            var_dump($age);
+            $ota = mb_convert_encoding($row[0], 'UTF-8', 'SJIS');
+            $reserved_date = mb_convert_encoding($row[1], 'UTF-8', 'SJIS');
+            $checkin_date = mb_convert_encoding($row[2], 'UTF-8', 'SJIS');
+            $total_price = mb_convert_encoding($row[3], 'UTF-8', 'SJIS');
+            
+            $dataInsert = [$ota, $reserved_date, $checkin_date, $total_price];
+            
+            //var_dump($ota);
+            //var_dump($reserved_date);
+            //var_dump($checkin_date);
+            //var_dump($total_price);
 
-            // ここで値をデータベースに保存したりする
+            TestBooking::insert(array(
+                'ota' => $ota, 
+                'reserved_date' => $reserved_date, 
+                'checkin_date' => $checkin_date, 
+                'total_price' => $total_price
+            ));
 
         }
         $row_count++;
