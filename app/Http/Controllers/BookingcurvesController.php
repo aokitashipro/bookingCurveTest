@@ -8,6 +8,7 @@ use App\Http\Requests;
 
 use App\Bookingcurve;
 use App\Testbooking;
+use DB;
 
 //useしないと 自動的にnamespaceのパスが付与されるのでuse
 use SplFileObject;
@@ -103,14 +104,13 @@ class BookingcurvesController extends Controller
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0',
         ];
-    
+
         $callback = function()
         {
             
             $createCsvFile = fopen('php://output', 'w');
             
             $columns = [
-                'ota',
                 'reserved_date',
                 'checkin_date',
                 'total_price',
@@ -120,18 +120,20 @@ class BookingcurvesController extends Controller
     
             fputcsv($createCsvFile, $columns);
 
-            $bookingCurveResults = TestBooking::all();
+            $bookingCurve = DB::table('testbookings');
 
-            // $bookingCurve = DB::table('testbooking');
-
-            // $bookingCurveResults = $bookingCurve
-            //     ->groupby('reserved_date')
-            //     ->groupby('total_price')
-            //     ->get();
-
+            $bookingCurveResults = $bookingCurve
+                ->select(['reserved_date'
+                , 'checkin_date' 
+                ,DB::raw('sum(total_price) as total_price')])
+                ->groupby('reserved_date')
+                ->get();
+    
+            //$bookingCurveResults自体は取得できている
+            //dd($bookingCurveResults);
+    
             foreach ($bookingCurveResults as $row) { 
                 $csv = [
-                    $row->ota,
                     $row->reserved_date,
                     $row->checkin_date,
                     $row->total_price,
@@ -143,8 +145,6 @@ class BookingcurvesController extends Controller
             }
             fclose($createCsvFile);
         };
-
-        //var_dump($list);
         
         return response()->stream($callback, 200, $headers);
         
