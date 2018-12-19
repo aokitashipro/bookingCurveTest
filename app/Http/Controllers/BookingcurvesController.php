@@ -16,17 +16,9 @@ use SplFileObject;
 class BookingcurvesController extends Controller
 {
 
-    //
-    // public function index(Request $request)
-    // {
-    //     $test_1 = "テスト";
-        
-    //     return view('welcome',compact('test_1'));  
-    // }
-
     protected $bookingcurve = null;
 
-     public function __construct(Bookingcurve $bookingcurve)
+    public function __construct(Bookingcurve $bookingcurve)
     {
         $this->bookingcurve = $bookingcurve;
     }
@@ -34,8 +26,6 @@ class BookingcurvesController extends Controller
 
     public function index()
     {
-        // $data = [];
-        // $data['bookingcurve'] = $this->bookingcurve->all();
         return view('welcome');
     }
 
@@ -47,6 +37,10 @@ class BookingcurvesController extends Controller
      */
     public function import(Request $request)
     {
+
+    //全件削除
+    TestBooking::truncate();
+
     // setlocaleを設定
     setlocale(LC_ALL, 'ja_JP.UTF-8');
 
@@ -60,38 +54,68 @@ class BookingcurvesController extends Controller
     $file = new SplFileObject($file_path);
     $file->setFlags(SplFileObject::READ_CSV);
 
-    //dd($file);
+    //配列の箱を用意
+    $array = [];
 
     $row_count = 1;
+    
     foreach ($file as $row)
     {
+
+        // 最終行の処理
+        if ($row === [null]) continue; 
+        
         // 1行目のヘッダーは取り込まない
         if ($row_count > 1)
         {
-
+        
             $ota = mb_convert_encoding($row[0], 'UTF-8', 'SJIS');
-            $reserved_date = mb_convert_encoding($row[1], 'UTF-8', 'SJIS');
-            $checkin_date = mb_convert_encoding($row[2], 'UTF-8', 'SJIS');
-            $total_price = mb_convert_encoding($row[3], 'UTF-8', 'SJIS');
-            
-            $dataInsert = [$ota, $reserved_date, $checkin_date, $total_price];
-            
-            //var_dump($ota);
-            //var_dump($reserved_date);
-            //var_dump($checkin_date);
-            //var_dump($total_price);
-
-            TestBooking::insert(array(
+            $reserved_date = mb_convert_encoding($row[2], 'UTF-8', 'SJIS');
+            $checkin_date = mb_convert_encoding($row[3], 'UTF-8', 'SJIS');
+            $total_price = mb_convert_encoding($row[5], 'UTF-8', 'SJIS');
+        
+            $bookingdata_array = [
                 'ota' => $ota, 
                 'reserved_date' => $reserved_date, 
                 'checkin_date' => $checkin_date, 
                 'total_price' => $total_price
-            ));
+            ];
 
+            array_push($array, $bookingdata_array);
+
+                // TestBooking::insert(array(
+                //     'ota' => $ota, 
+                //     'reserved_date' => $reserved_date, 
+                //     'checkin_date' => $checkin_date, 
+                //     'total_price' => $total_price
+                // ));
         }
+
         $row_count++;
+
+    }
+    
+    //var_dump($array);
+
+    $array_count = count($array);
+
+    if ($array_count < 1){
+
+        TestBooking::insert($array);
+
+    } else {
+
+        $number_of_array = $array_count / 2 ;
+        
+        $array_partial = array_chunk($array, $number_of_array);
+
+        dd($array_partial);
+
+        TestBooking::insert($array_partial);
+
     }
 
+    return view('welcome');
 
     }
 
