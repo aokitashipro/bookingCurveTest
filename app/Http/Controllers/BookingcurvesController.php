@@ -83,6 +83,7 @@ class BookingcurvesController extends Controller
 
             array_push($array, $bookingdata_array);
 
+                // 数が多いと処理重すぎなのでバルクインサートに切り替える
                 // TestBooking::insert(array(
                 //     'ota' => $ota, 
                 //     'reserved_date' => $reserved_date, 
@@ -99,21 +100,24 @@ class BookingcurvesController extends Controller
 
     $array_count = count($array);
 
-    if ($array_count < 1){
+    if ($array_count < 500){
 
         TestBooking::insert($array);
 
     } else {
 
-        $number_of_array = $array_count / 2 ;
+        $array_partial = array_chunk($array, 500); //配列分割
+    
+        $array_partial_count = count($array_partial); //配列の数
+
+        for ($i = 0; $i <= $array_partial_count - 1; $i++){
         
-        $array_partial = array_chunk($array, $number_of_array);
-
-        dd($array_partial);
-
-        TestBooking::insert($array_partial);
+            TestBooking::insert($array_partial[$i]);
+        
+        }
 
     }
+    
 
     return view('welcome');
 
